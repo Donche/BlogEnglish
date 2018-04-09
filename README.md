@@ -1,5 +1,3 @@
-### 我的博客
+﻿### My blog address：[https://donche.github.io/en](https://donche.github.io/en)
 
-地址：[https://donche.github.io/](https://donche.github.io/)
-
-根据[Hux Blog](https://github.com/Huxpro/huxpro.github.io)模板写成
+, built according to [Hux Blog](https://github.com/Huxpro/huxpro.github.io).
