@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Get More Than 80,000 Albums Using Handwritten Spider
+title: Get More Than 80,000 Albums Using Handwritten Web Crawler
 category: Spider
 catalog: true
 tags: 
@@ -9,10 +9,10 @@ tags:
     - Spider
 ---
 
-*This project is inspired by another similar work[[1]](#1). In addition, I also refered to a book about spider. I intended to do it with Scrapy, a powerful web crawling framework. But it turns that my first try was a good one and it got more than 50,000 albums for me. In the same time it was not banned by the web site (probably because it just crawled too slow. Anyway I'll try next time to make it fast enough to get banned...). Then I thought it may be a good one and useful for this small project*     
+*This project is inspired by another similar work[[1]](#1). In addition, I also refered to a book about spider. I intended to do it with Scrapy, a powerful web crawling framework. But it turns that my first try was a good one and it got more than 50,000 albums for me. At the same time it was not banned by the web site (probably because it just crawled too slow. Anyway I'll try next time to make it fast enough to get banned...). Then I thought it may be a good one and useful for this small project*     
 
 
-This aim of this project was to get information of the albums as much as possible, including the name of the album, name of the artist, music genre, type of compilation(album, EP, single...), release time, ratings and the number of people who rated. Some of the information is missing, which needed to be replaced by None. The crawl begins at my recent favorite collection *Guruguru Brain Wash*. New urls can be retrieved in the recommandation area(Those who like *Guruguru Brain Wash* also like ...).      
+This aim of this project was to get information of the albums as much as possible, including the name of the album, name of the artist, music genre, type of compilation(album, EP, single...), release time, ratings and the number of people who rated. Some of the information is missing, which needed to be replaced by None. The web site I used was Douban, one of the most influential web 2.0 websites in China. The crawl begins at my recent favorite collection *Guruguru Brain Wash*. New urls can be retrieved in the recommandation area(Those who like *Guruguru Brain Wash* also like ...).      
 
 Untill now, I've got information on more than 80,000 albums. Since data base was used to to store all the information(albums and urls), theoretically, I can continue whenever I want. And because the recommandations are mainly over 7.0, so what we got were all high rated albums.   
 

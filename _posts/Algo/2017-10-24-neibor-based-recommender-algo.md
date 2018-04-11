@@ -1,42 +1,43 @@
 ---
 layout: post
-title: 基于邻域的推荐算法
-category: 算法
+title: Neighborhood-based Recommender System
+category: Algorithm
 catalog: true
 mathjax: true
 tags: 
     - 2017
-    - 算法
-    - 推荐系统
+    - Algorithm
+    - RecommenderSystem
 ---
 
-# 1. 基于邻域的算法
-基于邻域的算法分为两大类，一类是基于用户的协同过滤算法，另一类是基于物品的协同过滤算法。这两类算法都已经很成熟，所以做个笔记以备忘。数据集使用MovieLens提供的1M 数据集，可从[这个网站上](https://grouplens.org/datasets/movielens/) 下载。读取数据集并按7：3将每个用户看过的电影分为训练集和测试集。
+# 1. Neighborhood-based algorithm
 
-*本博客基于《推荐系统实践》(1)*
-# 2. 基于用户的协同过滤算法
-这个算法主要分为两部分：
-1. 计算用户相似度
-2. 根据用户的相似度给用户生成推荐列表
+The neighborhood-based algorithm can be divided into two categories, one is user-based collaborative filtering algorithm, and the other is item-based collaborative filtering algorithm. Both of these algorithms are already mature, so this blog is just written as notes. The data set used is the 1M data set provided by MovieLens and can be downloaded from [this site](https://grouplens.org/datasets/movielens/). Load the data set and divide each user's watch movie by 7:3 into a training set and a test set.    
+*This blog is based on the book "Recommended System Practice" [[1]](#1)*
 
-
-## 2.1 计算用户相似度
-假设有用户u 和 v， 他们之间的相似度为：   
+# 2. User-based collaborative filtering algorithm
+This algorithm is mainly divided into two parts:    
+1. Calculate user similarity    
+2. Generate a recommendation list for users based on their similarity    
+ 
+## 2.1 Calculate user similarity
+Assuming there are users u and v, the similarity between them is:  
 $$\omega_{uv}=\frac{|N(u)\bigcap N(v)|}{|N(u)\bigcup N(v)|}$$   
-或者使用余弦相似度：   
+Or use cosine similarity:   
 $$\omega_{uv}=\frac{|N(u)\bigcap N(v)|}{\sqrt{|N(u)||(v)|}}$$   
 
-根据这两个公式，我们需要分别计算分子分母。假如计算方式为两两分别计算的话，当用户量变大，大部分用户之间都没有共同喜欢的物品，计算效率会非常低。所以我们先统计出一个 物品-用户 的倒排表，然后遍历这个倒排表统计出每两个用户之间感兴趣物品的集合，具体代码如下：
+According to these two formulae, we need to calculate the numerator and denominator separately. If we calculate them respectively, when the user volume becomes large, most of the users do not have common favorite items, and the calculation efficiency will be very low. Therefore, we count the inverted list of an item-user, and then traverse the inverted list to count the collection of items of interest between each two users. The code is as follows:  
+
 ```python
 def UserSimilarity(train):
-    #建立倒排表
+    #inverted list
     item_users = dict()
     for u, items in train.items():
         for i in items.keys():
             if i not in item_users:
                 item_users[i] = set()
             item_users[i].add(u)
-    #计算用户矩阵
+    #user matrix
     C = dict()
     N = dict()
     for i, users in item_users.items():
@@ -49,7 +50,7 @@ def UserSimilarity(train):
                     C[u] = dict()
                 #C[u][v] = C[u].get(v,0) + 1
                 C[u][v] = C[u].get(v,0) + 1 / math.log(1 + len(users))
-    #计算用户相似度
+    #user's similarity
     W = dict()
     for u, related_users in C.items():
         if u not in W:
@@ -59,19 +60,22 @@ def UserSimilarity(train):
     return W
 
 ```
-其实在以上代码已经顺便统计出了N(u)，所以用户的相似度便得到了。
+In fact, the above code has already counted N(u) by the way, so the user's similarity is obtained.
 
-所以，我们进入下一步。   
-并没有。   
-现在假设有一些用户，都喜欢看电影（那当然）。他们都看过 《星球大战》、《这个杀手不太冷》、《肖申克的救赎》等等等等几十部热门电影......那么他们的兴趣很相近吗？在更多的可能性下，其中一些迷恋塔可夫斯基、一些是诺兰脑残粉、一些沉迷希区柯克、一些是漫威死宅，还有一些是文艺小清新。万一给岩井俊二的迷妹推荐到希区柯克的电影并且对该用户造成一百八十平米的心理阴影，那么这个推荐系统就很失败了。   
-所以如何避免这些热门电影过度影响用户兴趣相似度的计算呢？so easy，减个权重就行。公式如下：    
+So can we go to the next step?   
+no, not yet.   
+
+Now suppose that some users like to watch movies (of course). They have all watched dozens of popular movies such as "Star Wars", "The Professional", "The Shawshank Redemption" etc. ... So are their interests so similar? Under more possibilities, some of them are fans of Tarkovsky, some are with Nolan, some Hitchcock and some Marvels. In case Ishii’s fans are recommended to Hitchcock’s film and cause great psychological harm to the user, we can say that the recommendation system failed.    
+
+So how to avoid these popular movies from excessively affecting the calculation of user interest similarity? So easy, just reduce the weight on the famous movies. The formula is as follows:   
 $$\omega_{u,v} = \frac{\sum_{i\in N(u)\bigcap N(v)} \frac{1}{log1 + |N(i)|}}{\sqrt{|N(u)||N(v)|}}$$   
 
-## 2.2 物品推荐
-得到了与目标用户u兴趣最相近的K个用户后，就可以推荐这些用户感兴趣的而目标用户u并没有听说过的物品。其中每个物品i 对于用户u 的权重可以用以下公式计算：
+## 2.2 Recommendation
+After getting the K users that are most similar with the target user u, they can recommend items that are of interest to these users but not heard by the target user u. The weight of each item i for user u can be calculated using the following formula:    
 $$p(u,i)=\displaystyle\sum_{v\in S(u,K)\bigcap N(i)} \omega_{u,v}r_{v,i} $$   
 
-如果使用单一的隐反馈数据的话，所有的r 都等于1。如果还想使用评分数据的话，可以用评分来当作权数（还没有试过）。得到的结果通过评分排序后，选取前十个返回（Top10）
+All r is equal to 1 if a implicit feedback data is used. If you also want to use the score data, you can use the score as a weight (have not tried). The results can obtained by sorting the score and selecting the first ten items (Top10)     
+
 ```python
 def Recommend(user, train, W, K):
     rank = dict()
@@ -79,7 +83,6 @@ def Recommend(user, train, W, K):
     for v, wuv in sorted(W[user].items(), key=itemgetter(1), reverse=True)[0:K]:
         for i, rvi in train[v].items():
             if i in interacted_items:
-                #we should filter items user interacted before
                 continue
             if i not in rank:
                 rank[i] = 0
@@ -87,12 +90,12 @@ def Recommend(user, train, W, K):
     return sorted(rank.items(), key = itemgetter(1), reverse = True)[0:10]
 ```
 
-## 2.3 指标测试
-正如上节所说，衡量一个推荐算法最重要的有以下几个参数：
-* 准确率和召回率
-* 流行度
-* 覆盖率
-测试时可以用交叉验证，更准确,也更费时间。我直接用测试集测试。具体代码如下，同时返回了所有的指标：
+## 2.3 Result Test
+As mentioned in the previous section, the most important measures of a recommended algorithm are the following parameters:
+* Precision and recall rate
+* popularity
+* coverage
+Cross-validation can be used during testing, which is more accurate and time-consuming. I test directly with the test data. The code is as follows:
 ```python
 def PrecisionRecall(test, train, W, K):
     hit = 0
@@ -101,7 +104,7 @@ def PrecisionRecall(test, train, W, K):
     recommend_items = set()
     all_items = set()
     item_popularity = dict()
-    #统计所有物品以及出现的次数
+    #Count all items and their occurrences
     for user, items in train.items():
         for item in items.keys():
             if item not in item_popularity:
@@ -124,7 +127,7 @@ def PrecisionRecall(test, train, W, K):
     popularity /= n * 1.0
     return [hit / (1.0 * n_recall), hit / (1.0 * n_precision), hit, n_recall, n_precision, coverage, popularity]
 ```
-通过不同的用户数K， 得到以下结果：
+With different K, the following results are obtained:         
 
 K   | recall| precision | coverage  | popularity    | hit number
 --- | ---   | ---       | ---       | ---           |  ---
@@ -135,21 +138,21 @@ K   | recall| precision | coverage  | popularity    | hit number
 80  | 8.46% | 42.02%    | 19.89%    | 7.0811        | 25378
 
 
-可以看出，推荐系统在K = 80 的情况下得到了最高的准确率和召回率，但是覆盖率和流行度并不理想，尤其是覆盖率。
+It can be seen that the recommendation system has the highest precision and recall rate with K = 80, but coverage and popularity are not ideal, especially coverage.        
 
-# 3. 基于物品的协同过滤算法
+# 3. Item-based collaborative filtering algorithm      
 
-一切都与基于用户的协同过滤算法那么相似：
-1. 计算物品的相似度
-2. 根据物品的相似度和用户的历史行为给用户生成推荐列表
+It is so similar to user-based collaborative filtering algorithm:     
+1. Calculate item similarity      
+2. Generate a recommendation list for the user based on the similarity of the item and the user's historical behavior     
 
-## 3.1 计算物品的相似度
-依然是那么相似：
-假设有物品u 和 v， 他们之间的相似度为：
+## 3.1 Calculate item similarity
+
+Assuming items u and v, the similarity between them is:      
 $$\omega_{uv}=\frac{|N(u)\bigcap N(v)|}{|N(u)\bigcup N(v)|}$$   
-或者使用余弦相似度：
-$$\omega_{uv}=\frac{|N(u)\bigcap N(v)|}{\sqrt{|N(u)||(v)|}}$$   
-同上，我们先统计出一个 用户-物品 的倒排表，然后遍历这个倒排表统计出每两个物品之间相似的集合。因为我们的数据集本身就是 用户-物品 排列的，所以可以省掉一部分处理。具体代码如下：
+Or use cosine similarity:      
+$$\omega_{uv}=\frac{|N(u)\bigcap N(v)|}{\sqrt{|N(u)||(v)|}}$$     
+As above, we first count the inverted list of a user-item, and then traverse the inverted list to count the similar set of every two items. Since our dataset itself is a user-item arrangement, we can omit this part of the processing. The code is as follows:        
 ```python
 def ItemSimilarity(train):
     C = dict()
@@ -163,7 +166,7 @@ def ItemSimilarity(train):
                 if i not in C:
                     C[i] = dict()
                 C[i][j] = C[i].get(j,0) + 1 / math.log(1 + len(items) * 1.0)
-    #计算相似矩阵
+    #Calculate similarity matrix
     W = dict()
     for i,related_items in C.items():
         W[i] = dict()
@@ -171,33 +174,21 @@ def ItemSimilarity(train):
             W[i][j] = cij / math.sqrt(N[i] * N[j])
     return W
 ```
-同样，我们依然需要对超级活跃的用户进行惩罚。几个阅片无数的用户很容易使得很多不相关的冷门物品出现相似性。惩罚方法与之前基于用户的协同过滤算法一样。
+Similarly, we still need to take some extra actions to the super-active users. Several users who've seen a large number of films easily make many unrelated cool items appear similar. The penalty method is the same as what we did to the previous user-based collaborative filtering algorithm.     
 
-## 3.2 物品推荐
-用户u对物品i的兴趣由以下公式计算(跟上一个其实是一样的)：
-$$p(u,i)=\displaystyle\sum_{v\in S(i,K)\bigcap N(u)} \omega_{i,v}r_{u,v} $$    
+## 3.2 Item recommendation       
+User u's interest in item i is calculated by the following formula (which is the same as the previous one):
+$$p(u,i)=\displaystyle\sum_{v\in S(i,K)\bigcap N(u)} \omega_{i,v}r_{u,v} $$      
 
-基于物品的协同推荐的一个好处是，可以提供推荐理由：根据您喜欢的XXXX推荐。
+One of the benefits of item-based collaborative recommendations is that you can give a reason for the recommendation: based on your favorite item XXXX, we recommend you such items:...     
 
->Karypis 在研究中发现如果将ItemCF的相似度矩阵按最大值归一化，可以提高推荐的准确率。其研究表明，如果已经得到了物品相似度矩阵w，那么可以用如下公式得到归一化之后的相似度
-矩阵w'：  
-$$\omega_{ij}' = \frac{\omega_ij}{max_j \omega_{ij}}$$    
-
-
-于是我做个了小测试，结果如下：
-
-类别  | recall    | precision | coverage  | popularity    | hit number
----     | ---   | ---   | ---   | --- |  ---
-未归一化 | 5.72% | 28.40% | 55.03% | 6.5460 | 17154
-归一化 | 0.05% | 0.25% | 19.18% | 2.2626 | 153
+And, Karypis found that if the ItemCF similarity matrix is normalized by the maximum value, the recommendation accuracy can be improved. The research shows that if the item similarity matrix w has been obtained, the similarity after normalization can be obtained by the following formula:     
+$$\omega_{ij}' = \frac{\omega_ij}{max_j \omega_{ij}}$$     
 
 
-感觉这样的结果应该是我代码写错了？...找了好久还没有找到bug，找到了再更新吧   
+## 3.3 Parameter test
 
-
-## 3.3 指标测试
-用同样的方法和参数跑了~~好多好多遍~~算法，得到以下结果:     
-
+I ran the algorithm with the same parameters and got the following result:    
 
 K   | recall| precision | coverage  | popularity    | hit number
 --- | ---   | ---       | ---       | ---           |  ---
@@ -208,51 +199,47 @@ K   | recall| precision | coverage  | popularity    | hit number
 40  | 7.55% | 37.53%    | 13.39%    | 7.2929        | 22666
 
 
-由表看出，K = 5 的时候准确率和召回率达到了峰值。而覆盖率和流行度随K 的增大单调递减。
+As can be seen from the table, the precision and recall rate peaked when K = 10. The coverage and popularity decrease monotonically with the increase of K.      
 
-# 4. 对比分析
+# 4. Analysis      
 
-## 4.1 数据量上的区别
-例如在新闻网站等内容更新非常快的网站，基于物品的协同过滤算法造成很大的计算量，并且占用大量空间存储物品关系矩阵，性能并不会好。同时每天需要更新如此大的矩阵也是不现实的。这时我们可以根据用户之间的相似度推荐物品。    
-再例如在电影推荐系统中，电影更新很慢，数量可能远少于用户数量。基于物品推荐就很合理。其次例如购物网站等也是同理。
+## 4.1 The difference in the amount of data
+For example, in websites such as news websites where content is updated very quickly, item-based collaborative filtering algorithms cause a large amount of calculations and occupy a large amount of space to store item relationship matrices, and performance is not so good. It is also unrealistic to update such a large matrix every day. At this time we can recommend items based on the similarity between users.       
+For another example, in the movie recommendation system, the movie update is very slow and the number may be far less than the number of users. The recommendation based on the item is very reasonable. And shopping websites, for example, are the same.      
 
-## 4.2 时效性的区别
-又拿新闻网站举例子。作为时效性很强的应用，过期的新闻很少有人看，同时网站每天会产生大量的新的信息，仅仅是维持这个矩阵就已经很难实现。相反用户的增长则没有那么多，更新用户的相似度更加可行。   
-再例如在购物网站中，用户并不需要在大量新上市的产品中挑选，而且用户的购买兴趣很少在短时间内有巨大变化，这样使用基于物品的推荐便成为了首选
+## 4.2 Time difference
+Take another example of a news website: as a very time-sensitive application, outdated news is rarely seen. At the same time, the website generates a large amount of new information every day. It is difficult to achieve this matrix alone. On the contrary, the user's growth is not so much, and updating the user's similarity is more feasible.      
+For another example, in a shopping site, users do not need to select a large number of newly-listed products, and the user's buying interest rarely changes drastically within a short period of time, so that the use of item-based recommendations becomes the first choice.     
 
 
-# 5. 利用multiprocessing 加速
-首先转载其他博客（2）的介绍：
->python中的多线程其实并不是真正的多线程，如果想要充分地使用多核CPU的资源，在python中大部分情况需要使用多进程。Python提供了非常好用的多进程包multiprocessing，只需要定义一个函数，Python会完成其他所有事情。借助这个包，可以轻松完成从单进程到并发执行的转换。multiprocessing支持子进程、通信和共享数据、执行不同形式的同步，提供了Process、Queue、Pipe、Lock等组件。     
->在利用Python进行系统管理的时候，特别是同时操作多个文件目录，或者远程控制多台主机，并行操作可以节约大量的时间。当被操作对象数目不大时，可以直接利用multiprocessing中的Process动态成生多个进程，十几个还好，但如果是上百个，上千个目标，手动的去限制进程数量却又太过繁琐，此时可以发挥进程池的功效。
->Pool可以提供指定数量的进程，供用户调用，当有新的请求提交到pool中时，如果池还没有满，那么就会创建一个新的进程用来执行该请求；但如果池中的进程数已经达到规定最大值，那么该请求就会等待，直到池中有进程结束，才会创建新的进程来它。
+# 5. Accelerate with multiprocessing
+First, cite the description of the other blog [[2]](#2):     
+>Multithreading in Python is not really multithreading. If you want to make full use of the resources of multicore CPUs, you need to use multiple processes in most cases in Python. Python provides a very easy way to use multiprocessing package. All we need is to define a function, and Python will take care of everything else. With this package, you can easily convert from a single process to concurrent execution. Multiprocessing supports child processes, communications and data sharing, different forms of synchronization and it also provides components such as Process, Queue, Pipe, and Lock.        
+>When using Python for system management, especially when operating multiple file directories at the same time or controlling multiple hosts remotely, parallel operation can save a lot of time. When the number of objects to be operated is not large, multiple processes in the multiprocessing process can be used directly to generate multiple processes.      
+>*Pool* can provide a specified number of processes. When a new request is submitted to the pool, if the pool is not yet full, a new process will be created to execute the request. But if the number of processes in the pool having reached the specified maximum value, the request waits until a process in the pool is finished before creating a new process to it.      
 
-multiprocessing.Pool 应该是在jupyter notebook上用不了，我的实验以失败告终。   
-关于Pool 的介绍改天专门讲，这里只说具体用法。    
-multiprocessing 的Pool 可以自动生成多进程的python 应用，方便易用，只需要改动少数几个地方即可。首先当然是 ``` import multiprocessing ```    
-因为Pool 必须在 __main__ 里运行，所以必须加上 ```if __name__ == "__main__"``` 这一行。然后将需要调用的函数和参数传递给Pool.map()即可，代码如下：
+The pool of multiprocessing can automatically generate multi-process python applications. It's easy to use, we only need to change a few lines. The first one is of course``` import multiprocessing ```          
+Because Pool must run in __main__, you must add the ```if __name__ == "__main__"``` line. Then you need to call the function and pass the parameters to Pool.map(), the code is as follows:      
 ```python
 pool = multiprocessing.Pool(2)
 rank_res = pool.map(Recommend,inp)
 pool.close()
 pool.join()
 ```
-上述代码创建了两个进程，分别将inp 内的每个值传递给Recommend 函数。随后关闭进程池并等待所有进程完毕。      
-这里需要稍微注意修改以下Recommend 函数的输入以及输出。由于是在循环外调用推荐函数，所有的结果都会存储在rank_res 里，为list 形式，需要手动转为dict。
+The above code creates two processes and passes each value in the inp to the Recommend function. Then it closes the process pool and waits for all processes to finish.     
+Here we need to pay a little attention to modifying the input and output of the Recommend function. Since this function is called outside of the loop, all results are stored in rank_res, which is a list and needs to be manually converted to dict.    
 
 
-效果当然是很显著的。使用ItemCF，当N = 5时，不使用多进程所用全部计算时间为1205s，使用4个进程同时计算，所需时间降低到了552s
+The effect is of course very significant. Using ItemCF, when N = 5, the total computation time used without multi-processes is 1205s. Simultaneous calculations are performed using 4 processes. The required time is reduced to 552s.
 
 
-*公式用 MathJax 引擎生成*
-
-*参考资料*
-1. 《推荐系统实践》 项亮
-2. http://www.cnblogs.com/kaituorensheng/p/4445418.html   
-3. http://www.cnblogs.com/whatisfantasy/p/6440585.html
+*Reference Materials*
+1. <span id="1"></span>《推荐系统实践》 项亮
+2. <span id="2"></span>http://www.cnblogs.com/kaituorensheng/p/4445418.html   
+3. <span id="3"></span>http://www.cnblogs.com/whatisfantasy/p/6440585.html
 
 
-# 附录
+# Appendix
 n_recall 300086 n_precision 60400      
 ItemCF    
 7：3    
