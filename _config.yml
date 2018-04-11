@@ -1,6 +1,6 @@
 # Site settings
 title: Donche
-SEOTitle: 知地 | Donche
+SEOTitle: The Sound and the Fury of the Silent Earth | Donche
 header-img: img/home-bg.jpg
 email: chdangg@gmail.com
 description: ""
@@ -68,7 +68,7 @@ ga_domain: auto
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
-sidebar-about-description: "昨日如梦<br>似流星划过<br>大地沉寂<br>就这样吧"
+sidebar-about-description: "Yesterday's dream<br>like meteors crossing<br>on the silent Earth<br>so be it"
 sidebar-avatar: /img/avatar-donche.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
