@@ -1,58 +1,51 @@
 ---
 layout: post
-title: 双目视觉大结
-category: 计算机视觉
+title: Stereo Vision Summary
+category: ComputerVision
 catalog: true
 tags: 
     - 2017
-    - 计算机视觉
+    - ComputerVision
     - OpenCV
     - C++
 ---
 
-# 1.双目视觉大结
+# 1.Stereo Vision Summary
 
-* 本来应该是很多个小结的，结果因为一懒再懒，一转眼代码都写完了还没有小结过，干脆直接大结好了。
-* 源码都在我的[github](https://github.com/Donche/StereoVision)里面，包括有用的和没用的，可以随意挑需要的出来。立体视觉有几种实现方式都做了（Feature Matching并没有做完。特征点匹配的虽然比较精准，但是经过筛选之后往往可用的只会剩下几十个，如果在特征不突出的环境中还可能更少。导致倒推回去的R跟T很不靠谱，所以我只做到了特征点的匹配就停了）。Block Matching的准确性还是挺好的，一般来说只要标定没问题，稍微调一下nDisparities和minDisparity就可以用了。
-* 因为也是实验室做的项目的一部分，所以功能性的代码暂时就更新到这了，~~以后可能会改进~~。
-* 其实这方面的博客已经够多了，我也参考了不少[[1]](#1)[[2]](#2) ，所以很基础知识的就不复习了，就说下主要思路。
-* 最近一直在看机器视觉机器学习还有机器人步态...乱七八糟看了一大堆，虽说拿笔写了点笔记但却没有怎么系统整理过，导致好久没有管博客了真是惭愧。所以这个写长点以示悔过。
-* 这篇主要讲的是双目视觉用OpenCV 的实现方法，其中涉及到的基础知识可以在很多书或者技术博客中找到（《计算机视觉》、《视觉SLAM》等等）。
+* The source code is in my [github](https://github.com/Donche/StereoVision). There are several implementations of stereo vision that have been done (not Feature Matching yet. Although feature point matching is more accurate, only a few dozen of them are often available after filtering. If the edge of the environment are not obvious, there may even be less. The matrices R and T are very unreliable in this way. So I just stopped here) The accuracy of Block Matching is quite good. In general, as long as the calibration is fine, after a slight adjustment of nDisparities and minDisparity, the code can be used then.    
 
-*------------8.24更新：-------------*
-实在忍不住吐槽几个OpenCV的bug(或许可能不是bug然而超级不好用的东西)：
-* 打开摄像头时候，必须由序号从高到低打开，否则无法打开
-* OpenCV的某些内置函数会造成一些很诡异的错误，例如vector无法释放。而且这个错误会毫无征兆突然出现，之前可以运行的代码重新编译一遍都可能出问题。这时可以用opencv的Mat类型来替代vector，具体实现的时候用Mat(A)即可。
->When OpenCV with c++ is used, it may happen this runtime error problem when feeding some Container (eg:vector) to the opencv built-in function. So it is good to use Mat datatype to save the output received by the opencv built-in function and then transfer them to whatever datatype you need.
+* In fact, there are enough blogs about stereo vision. I have also referred to a lot of blogs[[1]](#1)[[2]](#2), so I'm not going to review the basic knowledges.         
 
-* OpenCV 的摄像头输入流是有缓存的，默认缓存（貌似）为一帧。如果每帧之间处理速度快的话是发现不了的，然而如果每帧之间处理时间为5秒的话，就会出现十秒的延迟。最简单的解决办法是在读取的时候多读一帧，就可以拿到没有延迟的图像了。
+* This blog will focuse on the implementation of OpenCV for stereo vision. The basics involved can be found in many books or tech blogs.      
+
+*------------8.24 update：-------------*      
+Can't help but complain about OpenCV bugs (perhaps not bugs but super inconvenient features):      
+* When opening the camera, it must be opened by the sequence number from high to low, otherwise it cannot work.
+* Some of OpenCV's built-in functions will cause some very strange errors, such as the vector can not be released. And this error will suddenly appear without warning. The code that was previously available to run and recompile may also cause problems as well. At this time, you can use the Mat type of opencv to replace vector.
+>When OpenCV with c++ is used, it may happen this runtime error problem when feeding some Container (eg:vector) to the opencv built-in function. So it is good to use Mat datatype to save the output received by the opencv built-in function and then transfer them to whatever datatype you need.      
+
+* OpenCV's camera input stream is cached, and the default cache is one frame. If the processing speed between each frame is fast, it's okay to ignore it. However if the processing time between each frame is like 5 seconds, a ten second delay of the result will occur. The simplest solution is to read one more frame at the time of getting image.      
 
 
-# 2. 名词解释
-~~谷歌一下你就知道~~
-* 内参
-* 外参
-* 特征点（由关键点和描述子组成）
-* 视差
-* 三维重建
-* 标定
-* 重投影
+# 2. Two methods of stereo vision
 
-# 3. 立体视觉的两种实现方法
-目前的立体视觉匹配算法主要是Block Matching 、Feature Matching 和 Phase differencing algorithms。我们只考虑前两种。
-前者提前标定好，经过极线校正之后将左右摄像头画面矫正为同一高度以减少匹配所需的计算，然后用一个个的窗口进行匹配得到视差图，之后利用外参进行三维重建，效果很不错，速度也快，缺点就是得事先标定好，中途摄像头相对位置稍微变一下就得重新标定（比如自己用两个摄像头随意摆桌上的那种就很麻烦）。   
-后者是分别对左右两个图像取特征点，计算描述子然后匹配、筛选，得到一一对应的特征点后反推摄像头外参，同时将图像进行三角剖分，然后用推到的外参进行三维重建，速度比较慢，而且推出来的外参很不稳定。而且由于算法特征只能得到稀疏的视差场。
+The current stereo vision matching algorithms are Block Matching, Feature Matching and Phase differencing algorithms. We only consider the first two.       
+The former is to pre-calibrate the cameras. After image rectification, the matching is used to obtain the disparity maps. Then the three-dimensional reconstruction is performed using the extrinsic parameters. The result is very good and the speed is also fast. The disadvantage is that it must be calibrated beforehand. If the relative position of the camera is slightly changed while operating, you have to re-calibrate it (for example, I used two cameras to freely set the table, and it's a mess).       
 
-所以，主要使用Block Matching进行三维重建，Feature Matching只做到匹配。
+The latter is to take the feature points of the left and right images respectively, calculate the descriptors, and then match and filter them to obtain the one-to-one corresponding feature points and then get the camera's external parameters. Then the external parameters are used to re-construct the environment. The three-dimensional reconstruction is slow and the external parameters unstable. As a result, only sparse fields can be obtained.     
 
-# 4. Block Matching
-主要思路：1.标定 2.获取视差图 3.三维重建
-## 4.1 标定
-标定使用的标定板理论上可以使用任何图像，一般来说用的是标准的标定板，有chessboard、circles grid 和asymmetric circles grid这三种。需要注意的是，对于chessboard，对应的长和宽分别为两个方向上检测出来的角点数，也就是黑白方格数的值减一，square size 是两个角点之间的距离；对于circles grid， 长宽为两个方向上的圆的数量，square size 为最近两圆圆心距离；asymmetric circles grid 的square size 为水平方向两圆圆心距离的一半。     
-OpenCV标定使用的是张正有的方法，所以一般来说十张不同姿态的标定板就可以标定出不错的结果了，我一般用20-30张，重投影误差可以维持在0.08左右。又一个需要注意的是，如果使用circles grid，不应该使标定板距离摄像头太太近，否则误差会很大。
+Therefore, I mainly use Block Matching for three-dimensional reconstruction.    
 
-### 4.1.1 内参
-首先来看一下标定主要需要的参数：
+# 3. Block Matching
+Main ideas: 1. Calibration  2. Disparity map    3. 3D reconstruction    
+## 3.1 Calibration
+The image used for calibration can theoretically use any image. Generally speaking, the standard images used for calibration are chessboard, circle grid and asymmetric circles grid. It should be noted that for the chessboard, the corresponding corners detected in both directions is the value of the black and white squares minus one, and the square size is the distance between the two corners. For the circles Grid, the parameters length and width are the number of circles in two directions, square size is the distance between the nearest two circles' centers; the square size of asymmetric circles grid is half of the distance between two circles in the horizontal direction.     
+
+
+Zhang's method is used for calibration. So in general ten calibration images with different postures are enough. I usually use 20-30, and the re-projection error can be maintained at about 0.08. Another thing to note is that if you use the circles grid, you shouldn't make the calibration plate close to the camera, or the error will be very large.     
+
+### 3.1.1 Intrinsic parameters
+First, take a look at the parameters required for calibration:
 ```c++
 CV_EXPORTS_W double calibrateCamera( InputArrayOfArrays objectPoints,
                                      InputArrayOfArrays imagePoints, Size imageSize,
@@ -62,8 +55,11 @@ CV_EXPORTS_W double calibrateCamera( InputArrayOfArrays objectPoints,
                                         TermCriteria::COUNT + TermCriteria::EPS, 30, DBL_EPSILON) );
 ```
 
-好吧，确实很多......一个一个来吧
-* objectPoints：opencv手册里有解释。In the new interface it is a vector of vectors of calibration pattern points in the calibration pattern coordinate space (e.g. std::vector<std::vector<cv::Vec3f>>). 所以就是在标定板坐标上的需要检测点的坐标了。之前设定的高和宽还有square size 就是给这个用的。生成这个参数十分简单，opencv里有源码可以参考，大概长这样：
+* objectPoints: has been explained in opencv manual:    
+>In the new interface it is a vector of vectors of calibration pattern points in the calibration pattern coordinate space (e.g. std::vector<std::vector<cv::Vec3f>>).    
+
+So it is the coordinate of the corner point that needs to be detected. The previously set height and width and square size are for this purpose. Generating this parameter is very simple, opencv source code can be referenced:    
+
 ```c++
 void StereoCalibration::calcBoardCornerPositions( vector<Point3f>& corners)
 {
@@ -74,15 +70,16 @@ void StereoCalibration::calcBoardCornerPositions( vector<Point3f>& corners)
 			corners.push_back(Point3f(float(j*squareSize), float(i*squareSize), 0));
 }
 ```
-* imagePoints:it is a vector of vectors of the projections of calibration pattern points。对，就是找出来的点在图像里的坐标。这个可以用```findChessboardCorners```或者```findCirclesGrid```找出来，就不举例了。
-* imageSize：图像大小
-* cameraMatrix： 输出摄像头内参
-* distCoeffs： 输出相机畸变矩阵
-* rvecs(tvecs)：Output vector of rotation(translation) vectors estimated for each pattern view，可以用来计算重投影误差。
-* flag：~~立flag 用的，~~ 设置一些标定方法，比如```CV_CALIB_FIX_K4```。
+   
+* imagePoints:it is a vector of vectors of the projections of calibration pattern points。It is the coordinates of the points in the image. This can be found with ```findChessboardCorners``` or ```findCirclesGrid```.
+* imageSize：Image size
+* cameraMatrix： Output camera intrinsic parameters
+* distCoeffs： Output camera distortion matrix
+* rvecs(tvecs)：Output vector of rotation(translation) vectors estimated for each pattern view. It can be used to calculate the reprojection error.
+* flag：some calibration methods settings, such as```CV_CALIB_FIX_K4```。
 
-### 4.1.2 外参
-知道了内参之后，外参就比较好搞了，标定也是很准的。先看一下函数：
+### 3.1.2 Extrinsic parameters
+After getting the intrinsic parameters, the extrinsic parameters is much easier to calculate. Look at the function first:      
 ```c++
 CV_EXPORTS_W double stereoCalibrate( InputArrayOfArrays objectPoints,
                                      InputArrayOfArrays imagePoints1, InputArrayOfArrays imagePoints2,
@@ -92,19 +89,19 @@ CV_EXPORTS_W double stereoCalibrate( InputArrayOfArrays objectPoints,
                                      int flags = CALIB_FIX_INTRINSIC,
                                      TermCriteria criteria = TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 1e-6) );
 ```
-* objectPoints：跟单目的一样，用同一个变量就行
-* imagePoints：两个图像的imagepoints，同上
-* cameraMatrix、distCoeffs1：同上，直接把单目标定出来的结果放进去就可以
-* imageSize：同上
-* R：两个摄像头之间的旋转矩阵
-* T：摄像头之间的平移矩阵
-* E：本征矩阵
-* F：基础矩阵
-* flag：就是flag 啊
+* objectPoints：the same as before
+* imagePoints：as before
+* cameraMatrix、distCoeffs1：as before
+* imageSize：as before
+* R：Rotation matrix between two cameras
+* T：Translating matrix between two cameras
+* E：Essential matrix
+* F：Foundation matrix
+* flag：as before
 
-### 4.1.3 极线校正
-
-为了匹配需要，计算出四个map用来对摄像头得到的图像进行remap，得到双目平行校正后的图像：
+### 3.1.3 Rectification
+  
+For matching purposes, four maps are calculated to remap the image to obtain rectified images:     
 ```c++
 CV_EXPORTS_W void stereoRectify( InputArray cameraMatrix1, InputArray distCoeffs1,
                                  InputArray cameraMatrix2, InputArray distCoeffs2,
@@ -120,12 +117,10 @@ CV_EXPORTS_W void initUndistortRectifyMap( InputArray cameraMatrix, InputArray d
                         Size size, int m1type, OutputArray map1, OutputArray map2 );
 ```
 
-## 4.2 获取视差图
-opencv2提供的BM算法主要有BM、SGBM和GC。   
-然而我用的是OpenCV3，跟2有些不一样。不知道为什么，但是我们好像要失去GC了。   
-没关系，对于我这个来说BM差不多够了。   
-原理的话就不细说，其他博客有很多讲解的，我就直接说参数吧(以OpenCV3为准)。   
-StereoBM 是继承的StereoMatcher，双方各有一些参数设置。因为是继承下来的，所以直接在StereoBM的实例里面设置就行。   
+## 3.2 Disparity map    
+The Block Matching algorithms provided by opencv mainly include BM, SGBM and GC.      
+
+For opencv3, StereoBM is an inherited class by StereoMatcher. Both sides have some parameter settings. Because it is inherited, it is set directly in the StereoBM function.     
 ```c++
 //StereoMatcher
 CV_WRAP virtual void compute( InputArray left, InputArray right,
@@ -146,25 +141,8 @@ CV_WRAP virtual void setSmallerBlockSize(int blockSize) = 0;
 CV_WRAP virtual void setROI1(Rect roi1) = 0;
 CV_WRAP virtual void setROI2(Rect roi2) = 0;
 ```
-一个一个来：   
-* compute：算视差图咯，把八位单通道的图像（CV_8UC1）输进去，就得到视差图了。
-* setMinDisparity：最小视差，默认值是 0
-* setNumDisparities：最大视差值与最小视差值之差, 必须是 16 的整数倍。在相同外参的情况下，一般来说这个值越大可以检测到的最近距离越小（越近的物体有越大的视差值）
-* setBlockSize：设置block 的大小，跟以前的SADWindowsize是一样的，值越大匹配到的块越大...一般应该在 5x5 至 21x21 之间，参数必须是奇数
-* setSpeckleWindowSize：检查视差连通区域变化度的窗口大小, 值为 0 时取消 speckle 检查
-* setSpeckleRange：视差变化阈值，当窗口内视差变化大于阈值时，该窗口内的视差清零
-* setDisp12MaxDiff：左视差图（直接计算得出）和右视差图（通过cvValidateDisparity计算得出）之间的最大容许差异。超过该阈值的视差值将被清零。该参数默认为 -1，即不执行左右视差检查。
+There are too many parameters, but only the SADWindowSize, numberOfDisparities, and uniquenessRatio are more important. The others can take a little less time. My final choice of parameters is:
 
-
-* setPreFilterType：预处理滤波器的类型，主要是用于降低亮度失真（photometric distortions）、消除噪声和增强纹理等
-* setPreFilterSize：预处理滤波器窗口大小，容许范围是[5,255]，一般应该在 5x5..21x21 之间，参数必须为奇数值
-* setPreFilterCap：预处理滤波器的截断值，预处理的输出值仅保留[-preFilterCap, preFilterCap]范围内的值
-* setTextureThreshold：低纹理区域的判断阈值。如果当前窗口内所有邻居像素点的x导数绝对值之和小于指定阈值，则该窗口对应的像素点的视差值为 0
-* setUniquenessRatio：视差唯一性百分比， 视差窗口范围内最低代价是次低代价的(1 + uniquenessRatio/100)倍时，最低代价对应的视差值才是该像素点的视差，否则该像素点的视差为 0
-* setROI1，setROI2：左右视图的有效像素区域，一般由双目校正阶段的 cvStereoRectify 函数传递，也可以自行设定。一旦在状态参数中设定了 roi1 和 roi2，OpenCV 会通过cvGetValidDisparityROI 函数计算出视差图的有效区域，在有效区域外的视差值将被清零。
-
-
-可见参数超级多，然而比较重要的只有SADWindowSize、numberOfDisparities 和 uniquenessRatio，其他的可以稍微少花点时间。我最终选择的参数是：
 ```c++
 int preFilterSize = 13;
 int preFilterCap = 24;
@@ -180,23 +158,25 @@ int speckleRange = 14;
 ```
 
 
-## 4.3 三维重建
-就是用三角测量还原出来场景的三维点，OpenCV 用reprojectImageTo3D 实现：
+## 3.3 3D reconstruction
+It is implemented with reprojectImageTo3D:
+
 ```c++
 CV_EXPORTS_W void reprojectImageTo3D( InputArray disparity,
                                       OutputArray 3dImage, InputArray Q,
                                       bool handleMissingValues = false,
                                       int ddepth = -1 );
 ```
-得到的三维点可以导出到文件给MatLab画出来，或者用OpenGL实时显示（不知道为什么我这个OpenGL画出来的画风很诡异，大概是哪没搞明白，等好了再详细介绍这块吧）
+The resulting 3D points can be exported to a file to be drawn to MatLab, or displayed in real time using OpenGL.    
 
 
-# 5. Feature Matching
-主要思路 1.找特征点 2.匹配、筛选
-## 5.1 特征点
-常用的主要有SURF、ORB、SIFT。一般来说就计算速度上，ORB>SURF>SIFT；计算的复杂度则反过来。一般情况使用ORB是比较好的选择，经过筛选之后还会留下来不少匹配好的特征点。     
-OpenCV3 里对特征点的实现方法改动比较大，需要用Feature2D 这个类来计算关键点和描述子，再用BFMatcher进行匹配。需要注意的是ORB使用Hamming distance作为描述子距离的度量，其他特征点可以使用不同的范数（如NORM_L2）。
-具体特征点实现方法主要如下（省去了各种有效性的判断，只写了主要思路）：
+# 4. Feature Matching
+Main ideas 1. Find feature points 2. Match and filter    
+## 4.1 feature points
+Commonly used methods are SURF, ORB and SIFT. In general, ORB>SURF>SIFT for calculation speed, and the computational complexity is reversed. Ordinarily, the use of ORB is a good choice. After filtering, it will still leave a lot of matched features.    
+
+The implementation of feature points in OpenCV3 has changed quite a lot. We need to use Feature2D to calculate key points and descriptors, and then use BFMatcher to match. It should be noted that the ORB uses the Hamming distance as a measure to describe the sub-distance, and other feature points can use different norms (such as NORM_L2).   
+
 ```c++
 Ptr<BFMatcher> matcher;
 Ptr<Feature2D> feature_l, feature_r;
@@ -208,25 +188,26 @@ feature_l->detectAndCompute(imgLeft, noArray(), key_points_l, descriptor_l);
 feature_r->detectAndCompute(imgRight, noArray(), key_points_r, descriptor_r);
 ```
 
-## 5.2 匹配和筛选
-匹配主要有三种，KNNMatch、radiusMatch和普通的BFMatch。
+## 4.2 Matching and filtering
+There are mainly three types of matching, KNNMatch, radiusMatch and BFMatch.    
 * KNNMatch：Finds the k best matches for each descriptor from a query set.
 * radiusMatch：For each query descriptor, finds the training descriptors not farther than the specified distance.
 * match：Finds the best match for each descriptor from a query set.
 
-都挺好理解的，我用的是KnnMatch，选择匹配最好的前两个，然后进行筛选。
+It's pretty easy to understand. I used KnnMatch and match the best of the first two, and then filtered.    
 
-筛选主要用到了两种手段，一个是ratioTest，一个是symmetryTest。
+Mainly two methods are used for filtering, one is ratioTest and the other is symmetryTest.   
 * ratioTest：
 >"Therefore, for each feature point, we have two candidate matches in the other view. These are the two best ones based on the distance between their descriptors. If this measured distance is very low for the best match, and much larger for the second best match, we can safely accept the first match as a good one since it is unambiguously the best choice. Reciprocally, if the two best matches are relatively close in distance, then there exists a possibility that we make an error if we select one or the other. In this case, we should reject both matches."   
 
-所以我取了0.7作为ratio，50作为最大距离进行筛选，得到每个特征点的最佳匹配，详情见源码。
-* symmetryTest：进行双向的验证，如果左右两个图像中的一堆特征点互相匹配的话，就视为有效匹配。
+So I took 0.7 as the ratio and 50 as the maximum distance to get the best match for each feature point. See source code for details.
 
-以上两种方法结合起来就可以得到效果很不错的匹配结果，误匹配很少，速度也不慢。
+* symmetryTest：Perform two-way verification, if a bunch of feature points in the left and right images match each other, it is considered as a valid match.
+
+The above two methods can be combined to get very good results, with few false matches and slow speeds.
  
 
 
-*参考资料*
+*Reference Materials*
 1. <span id="1"></span> http://blog.csdn.net/chenyusiyuan/article/details/5961769
 2. <span id="2"></span> http://blog.csdn.net/wangyaninglm/article/details/52142217
