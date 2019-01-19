@@ -94,44 +94,44 @@ As we can see, many people’s cabin information is missing, as well as age and 
 
 We plot the survival rate by sex. It clearly shows that women have a survival probability that is about three times that of men.
 
-![](./img/Titanic_sex.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_Cabin.png?raw=true)
 ### 2.2.2 Pclass
 
 Pclass means the ticket class. This is an important information to indicate the social status of a person. In most cases, rich people will have more privileges to escape. For example, better cabin position, more lifesaving devices, I guess. Whatever the reason, the survival rate of first-class people is undoubtedly higher than that of others. And as always, even a male in 1st class has less chance to survived than a female in 3rd class. This shows that ticket class is also an important feature.
 
-![](./img/Titanic_pclass.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_pclass.png?raw=true)
 
 ### 2.2.3 Age
 
 If we stick to the code of conduction : women and children first, we should know that age must also be a powerful feature that would definitely affect a person's survival. As age can be a continuous variable (which in fact is the case), binning data will help to indicate trends of survival rate. The numbers of people and survivors of all ages are shown below. We notice that even there is a large number of people between the ages of 16 and 40, they didn't survive a lot. Instead, many kids survived even though they are much more vulnerable.   
 
-![](./img/Titanic_age.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_age.png?raw=true)
 
 ### 2.2.4 SibSp and Parch
 
 SibSp means the number of siblings / spouses aboard the Titanic and Parch means the number of of parents / children aboard the Titanic. In theory, it is easier for a family to unite and survive together (although women and children have a greater probability of survival). We do notice that a certain number of family members has more chance to survive, this may be helpful.    
 
-![](./img/Titanic_SibSp.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_SibSp.png?raw=true)
 
-![](./img/Titanic_Parch.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_Parch.png?raw=true)
 
 ### 2.2.5 Fare
 
 Fare is also an important indicator of a person’s social status. We found that passengers with fare greater than 140 basically survived while the cheapest fare has the lowest survival rate.
 
-![](./img/Titanic_fare.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_fare.png?raw=true)
 
 ### 2.2.6 Embarked
 
 The embarked port has also a significant influence on survival rate. People who embarked on Cherbourg have somehow more chance to survive.
 
-![](./img/Titanic_embarked.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_embarked.png?raw=true)
 
 ### 2.2.7 Cabin
 
 The cabin also has an influence on the survival rate. People in the cabin closer to the exit (or better position) (maybe) can get to the lifeboats faster. As we have too much information of cabin lost, it's hard to predict or fill in with a reasonable value. Thus `U` is used as `unknown cabin`. 
 
-![](./img/Titanic_Cabin.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_Cabin.png?raw=true)
 
 # 3. Data Cleaning
 
@@ -145,7 +145,7 @@ Cabin is filled as we mentioned before. As for Embarked, we have only 2 values l
 
 An extra information is added as well. We observed a certain pattern (not so obvious) in `Parch` and `SibSp`, so another feature `Familysize` is considered as the combination of the two. And this time, it become much more evident:
 
-![](./img/Titanic_Family.png)
+![](https://github.com/Donche/en/blob/master/_posts/ML/img/Titanic_Family.png?raw=true)
 
 ## 3.2 Title
 
