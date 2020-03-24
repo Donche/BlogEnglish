@@ -1,6 +1,7 @@
 ---
 layout: post
 title: PageRank and graph based recommender system
+header-style: text
 category: Algorithm
 catalog: true
 mathjax: true

@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Latent Factor Recommender System
+header-style: text
 category: Algorithm
 catalog: true
 mathjax: true

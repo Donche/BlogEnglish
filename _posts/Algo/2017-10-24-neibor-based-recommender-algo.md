@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Neighborhood-based Recommender System
+header-style: text
 category: Algorithm
 catalog: true
 mathjax: true

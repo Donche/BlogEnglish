@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Titanic - Kaggle Competition
+header-style: text
 category: Machine Learning
 catalog: true
 mathjax: true

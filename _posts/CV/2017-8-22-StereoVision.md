@@ -2,6 +2,7 @@
 layout: post
 title: Stereo Vision Summary
 category: ComputerVision
+header-style: text
 catalog: true
 tags: 
     - 2017

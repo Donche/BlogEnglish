@@ -1,33 +1,41 @@
 ---
-title: Tags
+title: Archive
 layout: default
 description: keep hungry keep foolish
 header-img: "img/tag-bg.jpg"
 ---
 
+<!-- 
+Credits: this page shamelessly borrowed a lot from:
+https://github.com/kitian616/jekyll-TeXt-theme
+-->
 <!-- Page Header -->
-<header class="intro-header" style="background-image: url('{{ site.baseurl }}/{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}')">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-                <div class="site-heading" id="tag-heading">
-                    <h1>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</h1>
-                    <span class="subheading">{{ page.description }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
+
+{% include intro-header.html type='page' short=true %}
 
 <!-- Main Content -->
 <div class="container">
 	<div class="row">
 		<div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-            <!-- 标签云 -->
-			<div id='tag_cloud' class="tags">
+			<!-- Tags (as filter) -->
+			<div id='tag_cloud' class="tags tags-sup js-tags">
+				<a class="tag-button--all" data-encode="">
+					Show All
+					<sup>{{site.posts.size}}</sup>
+				</a>
+
+				{% capture tags %}
 				{% for tag in site.tags %}
-				<a href="#{{ tag[0] }}" title="{{ tag[0] }}" rel="{{ tag[1].size }}">{{ tag[0] }}</a>
+				<a data-sort="{{ site.posts.size | minus: tag[1].size | prepend: '0000' | slice: -4, 4 }}"
+					data-encode="{{ tag[0] | strip | url_encode }}"
+					class="tag-button"
+					title="{{ tag[0] }}" rel="{{ tag[1].size }}">
+					{{ tag[0] }}
+					<sup>{{tag[1].size}}</sup>
+				</a>__SEPERATOR__
 				{% endfor %}
+				{% endcapture %}
+        {{ tags | split:'__SEPERATOR__' | sort }}
 			</div>
 
             <!-- 标签列表 -->
@@ -41,7 +49,7 @@ header-img: "img/tag-bg.jpg"
 				  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
 				  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
 				  </li> -->
-				 <div class="post-preview">
+				 <div class="post-preview item" data-tags="{{ _tags }}">
 				    <a href="{{ post.url | prepend: site.baseurl }}">
 				        <h2 class="post-title">
                             {{ post.title }}
@@ -62,3 +70,4 @@ header-img: "img/tag-bg.jpg"
 		</div>
 	</div>
 </div>
+

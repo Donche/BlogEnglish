@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Get More Than 80,000 Albums Using Handwritten Web Crawler
+header-style: text
 category: Spider
 catalog: true
 tags: 
